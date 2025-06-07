@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "580250337078",
+    "project_id": "ticketing-app-8b320",
+    "storage_bucket": "ticketing-app-8b320.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:580250337078:android:072b7d8492e495d723fd97",
+        "android_client_info": {
+          "package_name": "com.example.ticket_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAj6D3zjlDmNUwpu_22cFi3EArRzm14EY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
