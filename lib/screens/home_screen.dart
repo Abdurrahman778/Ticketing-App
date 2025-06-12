@@ -12,6 +12,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseService _firebaseService = FirebaseService();
+  // Add search controller
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Add filter function
+  List<Ticket> _filterTickets(List<Ticket> tickets) {
+    if (_searchQuery.isEmpty) return tickets;
+
+    return tickets.where((ticket) {
+      final nameMatch = ticket.namaTicket.toLowerCase().contains(_searchQuery.toLowerCase());
+      final categoryMatch = ticket.kategori.toLowerCase().contains(_searchQuery.toLowerCase());
+      return nameMatch || categoryMatch;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,48 +50,79 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: StreamBuilder<List<Ticket>>(
-        stream: _firebaseService.getTickets(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text(
-                'tidak ada tiket',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
+      body: Column(
+        children: [
+          // Add search bar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari tiket...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-            );
-          }
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          // Wrap StreamBuilder in Expanded
+          Expanded(
+            child: StreamBuilder<List<Ticket>>(
+              stream: _firebaseService.getTickets(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          final tickets = snapshot.data ?? [];
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text(
+                      'tidak ada tiket',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  );
+                }
 
-          if (tickets.isEmpty) {
-            return const Center(
-              child: Text(
-                'tidak ada tiket',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            );
-          }
+                final tickets = snapshot.data ?? [];
+                final filteredTickets = _filterTickets(tickets);
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: tickets.length,
-            itemBuilder: (context, index) {
-              final ticket = tickets[index];
-              return _buildTicketCard(ticket);
-            },
-          );
-        },
+                if (filteredTickets.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'tidak ada tiket',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredTickets.length,
+                  itemBuilder: (context, index) {
+                    final ticket = filteredTickets[index];
+                    return _buildTicketCard(ticket);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
